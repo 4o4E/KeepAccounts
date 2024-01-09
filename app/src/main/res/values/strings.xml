@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">KeepAccounts</string>
+    <string name="title_activity_import">ImportActivity</string>
+</resources>
