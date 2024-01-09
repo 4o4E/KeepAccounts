@@ -34,7 +34,7 @@ fun LongPicker(
     hide: () -> Unit,
     set: (Long) -> Unit
 ) {
-    var value by remember { mutableStateOf(TextFieldValue("0")) }
+    var textValue by remember { mutableStateOf(TextFieldValue("0")) }
 
     Dialog(onDismissRequest = hide) {
         Surface(
@@ -48,12 +48,12 @@ fun LongPicker(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedTextField(
-                    value,
+                    textValue,
                     {
-                        value = it
+                        textValue = it
                         verify = when {
-                            value.text.isBlank() -> "请输入整数"
-                            value.text.toLongOrNull() == null -> "请输入有效整数"
+                            textValue.text.isBlank() -> "请输入整数"
+                            textValue.text.toLongOrNull() == null -> "请输入有效整数"
                             else -> null
                         }
                     },
@@ -74,11 +74,11 @@ fun LongPicker(
                     ClickableText(
                         text = AnnotatedString("保存"),
                         onClick = {
-                            if (value.text.isBlank()) {
+                            if (textValue.text.isBlank()) {
                                 verify = "请输入整数"
                                 return@ClickableText
                             }
-                            val value = value.text.toLongOrNull()
+                            val value = textValue.text.toLongOrNull()
                             if (value == null) {
                                 verify = "请输入有效整数"
                                 return@ClickableText
