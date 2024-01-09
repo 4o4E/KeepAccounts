@@ -27,7 +27,7 @@ import top.e404.keepaccounts.App
 import top.e404.keepaccounts.data.dao.Tag
 import top.e404.keepaccounts.ui.component.ColorPicker
 import top.e404.keepaccounts.ui.component.Input
-import top.e404.keepaccounts.util.Update
+import top.e404.keepaccounts.util.ViewModel
 
 @Composable
 fun TagEdit(tagDo: Tag, done: () -> Unit) {
@@ -70,16 +70,16 @@ fun TagEdit(tagDo: Tag, done: () -> Unit) {
         Button(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             onClick = {
-                App.launch {
-                    withContext(Dispatchers.IO) {
-                        App.db.tag.update(tagDo.also {
-                            it.tag = tag
-                            it.color = color
-                            it.desc = desc
-                        })
+                App.launch(Dispatchers.IO) {
+                    App.db.tag.update(tagDo.also {
+                        it.tag = tag
+                        it.color = color
+                        it.desc = desc
+                    })
+                    withContext(Dispatchers.Main) {
+                        ViewModel.updateTagList()
+                        done()
                     }
-                    Update.tag.longValue = System.currentTimeMillis()
-                    done()
                 }
             }
         ) {

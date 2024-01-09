@@ -8,6 +8,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,15 +17,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.e404.keepaccounts.App
 import top.e404.keepaccounts.data.dao.BalanceRecord
+import top.e404.keepaccounts.util.ViewModel
 
 @Composable
 fun RecordBrowser() {
     val scope = rememberCoroutineScope()
-    val list by App.db.record.flow().collectAsStateWithLifecycle(initialValue = listOf())
+    val list by remember { ViewModel.recordList }
     var editing by remember { mutableStateOf<BalanceRecord?>(null) }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -42,12 +42,14 @@ fun RecordBrowser() {
         LazyColumn(
             Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(20.dp)
-        ) {
+                .padding(20.dp)) {
             items(list.size) { index ->
                 val record = list[index]
                 BalanceRecord(record = record) { editing = record }
             }
         }
+    }
+    LaunchedEffect(Unit) {
+        ViewModel.updateRecordList()
     }
 }

@@ -40,7 +40,7 @@ fun DateTimePicker(timestamp: Long, hide: () -> Unit, set: (Long) -> Unit) {
     var isDate by remember { mutableStateOf(true) }
     var time by remember { mutableLongStateOf(timestamp) }
 
-    val now = OffsetDateTime.ofInstant(Instant.ofEpochSecond(time), ZoneId.systemDefault())
+    val now = OffsetDateTime.ofInstant(Instant.ofEpochSecond(time / 1000), ZoneId.systemDefault())
     val datePickerState = rememberDatePickerState(time)
     val timePickerState = rememberTimePickerState(now.hour, now.minute, is24Hour = true)
     Dialog(onDismissRequest = hide) {
@@ -82,11 +82,11 @@ fun DateTimePicker(timestamp: Long, hide: () -> Unit, set: (Long) -> Unit) {
                         text = AnnotatedString("保存"),
                         onClick = {
                             time = LocalDateTime.of(
-                                Instant.ofEpochSecond(datePickerState.selectedDateMillis!!)
+                                Instant.ofEpochSecond(datePickerState.selectedDateMillis!! / 1000)
                                     .atZone(ZoneId.systemDefault())
                                     .toLocalDate(),
                                 LocalTime.of(timePickerState.hour, timePickerState.minute)
-                            ).atZone(ZoneId.systemDefault()).toEpochSecond()
+                            ).atZone(ZoneId.systemDefault()).toEpochSecond() * 1000
                             set(time)
                             hide()
                         },

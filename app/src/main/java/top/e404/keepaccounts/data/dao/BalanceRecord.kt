@@ -6,15 +6,20 @@ import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
+import androidx.sqlite.db.SimpleSQLiteQuery
+import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import top.e404.keepaccounts.data.convert.BigDecimalConvert
+import top.e404.keepaccounts.data.query.RecordQuery
 import top.e404.keepaccounts.serializer.BigDecimalSerializer
 import top.e404.keepaccounts.ui.component.record.RecordType
 import java.math.BigDecimal
+
 
 /**
  * 记账数据
@@ -44,11 +49,43 @@ data class BalanceRecord(
 
 @Dao
 interface BalanceRecordDao {
-    @Query("SELECT * FROM ${BalanceRecord.TABLE_NAME}")
-    fun flow(): Flow<List<BalanceRecord>>
 
-    @Query("SELECT * FROM ${BalanceRecord.TABLE_NAME}")
+    @Query("SELECT * FROM ${BalanceRecord.TABLE_NAME} ORDER BY time DESC")
     fun list(): List<BalanceRecord>
+
+    fun query(query: RecordQuery): List<BalanceRecord> {
+        val sql = buildString {
+            append("SELECT * FROM ${BalanceRecord.TABLE_NAME} WHERE true ")
+            // time
+            when {
+                query.timeStart != null && query.timeEnd != null -> " AND `time` BETWEEN ${query.timeStart} AND ${query.timeEnd} "
+                query.timeStart == null && query.timeEnd == null -> null
+                query.timeStart != null -> " AND `time` > ${query.timeStart} "
+                else -> " AND `time` < ${query.timeEnd} "
+            }?.let { append(it) }
+            // value
+            when {
+                query.valueStart != null && query.valueEnd != null -> " AND CAST(`value` AS REAL) BETWEEN ${query.valueStart} AND ${query.valueEnd} "
+                query.valueStart == null && query.valueEnd == null -> null
+                query.valueStart != null -> " AND CAST(`value` AS REAL) > ${query.valueStart} "
+                else -> " AND CAST(`value` AS REAL) < ${query.valueEnd} "
+            }?.let { append(it) }
+            // desc
+            if (query.desc != null) append(
+                " AND `desc` LIKE '%${
+                    query.desc!!.replace(
+                        "'",
+                        "''"
+                    )
+                }%' "
+            )
+            append(" ORDER BY `${query.order.value}` ${if (query.asc) "ASC" else "DESC"}")
+        }
+        return queryRaw(SimpleSQLiteQuery(sql))
+    }
+
+    @RawQuery
+    fun queryRaw(query: SupportSQLiteQuery): List<BalanceRecord>
 
     @Transaction
     fun insertReturnId(record: BalanceRecord): Int {
@@ -85,4 +122,7 @@ interface BalanceRecordDao {
         deleteAll()
         insert(record)
     }
+
+    @Query("SELECT * FROM ${BalanceRecord.TABLE_NAME} WHERE id = :id")
+    fun flowById(id: Int): Flow<BalanceRecord>
 }

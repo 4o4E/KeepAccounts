@@ -51,6 +51,7 @@ import top.e404.keepaccounts.data.dao.RecordTag
 import top.e404.keepaccounts.data.dao.Tag
 import top.e404.keepaccounts.ui.component.DateTimePicker
 import top.e404.keepaccounts.ui.component.TagSelectList
+import top.e404.keepaccounts.util.ViewModel
 import top.e404.keepaccounts.util.primitive
 import java.math.BigDecimal
 
@@ -94,7 +95,8 @@ fun AddRecord(snackbarHostState: SnackbarHostState, done: CoroutineScope.() -> U
                 )
                 val recordId = App.db.record.insertReturnId(record)
                 App.db.recordTag.insert(chosenTags.map { RecordTag(recordId, it.id) })
-                withContext(Dispatchers.IO) {
+                withContext(Dispatchers.Main) {
+                    ViewModel.updateRecordList()
                     keyboard?.hide()
                     value = TextFieldValue()
                     desc = TextFieldValue()

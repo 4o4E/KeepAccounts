@@ -26,7 +26,7 @@ import top.e404.keepaccounts.data.dao.Tag
 import top.e404.keepaccounts.ui.component.ColorPicker
 import top.e404.keepaccounts.ui.component.Input
 import top.e404.keepaccounts.ui.component.colors
-import top.e404.keepaccounts.util.Update
+import top.e404.keepaccounts.util.ViewModel
 
 @Composable
 fun TagAdd(done: () -> Unit) {
@@ -68,10 +68,18 @@ fun TagAdd(done: () -> Unit) {
             onClick = {
                 App.launch {
                     withContext(Dispatchers.IO) {
-                        App.db.tag.insert(Tag(0, tag, desc, color.toArgb()))
+                        App.db.tag.insert(
+                            Tag(
+                                0,
+                                tag,
+                                desc,
+                                System.currentTimeMillis(),
+                                color.toArgb()
+                            )
+                        )
                     }
+                    ViewModel.updateTagList()
                     done()
-                    Update.record.longValue = System.currentTimeMillis()
                 }
             }
         ) {

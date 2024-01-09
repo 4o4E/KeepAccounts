@@ -42,7 +42,7 @@ import top.e404.keepaccounts.ui.component.DateTimePicker
 import top.e404.keepaccounts.ui.component.Input
 import top.e404.keepaccounts.ui.component.TagDisplayList
 import top.e404.keepaccounts.ui.component.TagSelectList
-import top.e404.keepaccounts.util.Update
+import top.e404.keepaccounts.util.ViewModel
 import top.e404.keepaccounts.util.toLocalDateTime
 import java.math.BigDecimal
 
@@ -77,6 +77,7 @@ fun EditRecord(recordDo: BalanceRecord, done: () -> Unit) {
                             App.db.record.delete(recordDo)
                             withContext(Dispatchers.Main) {
                                 showDeleteConfirm = false
+                                ViewModel.updateRecordList()
                                 done()
                             }
                         }
@@ -172,11 +173,9 @@ fun EditRecord(recordDo: BalanceRecord, done: () -> Unit) {
                             it.time = time
                         })
                         App.db.recordTag.updateByRecord(recordDo.id, selectedTags.map { it.id })
+                        ViewModel.updateRecordList()
                     }
-                    withContext(Dispatchers.Main) {
-                        Update.record.longValue = System.currentTimeMillis()
-                        done()
-                    }
+                    withContext(Dispatchers.Main) { done() }
                 }
             }
         ) {

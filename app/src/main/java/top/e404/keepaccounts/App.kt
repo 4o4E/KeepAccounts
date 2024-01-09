@@ -72,7 +72,6 @@ import top.e404.keepaccounts.ui.component.tag.TagBrowser
 import top.e404.keepaccounts.ui.view.Config
 import top.e404.keepaccounts.ui.view.Mine
 import top.e404.keepaccounts.ui.view.Statistic
-import top.e404.keepaccounts.util.Update
 
 private val appScope = CoroutineScope(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
     Log.e("top.e404.keepaccounts", "Unhandled exception in coroutine", throwable)
@@ -97,6 +96,19 @@ class App : ComponentActivity() {
             .apply()
     }
 
+    private val data = listOf(
+        "早饭" to "一顿早饭",
+        "午饭" to "一顿午饭",
+        "晚饭" to "一顿晚饭",
+        "购物" to "买了点东西",
+        "买贵了" to "价格比预期的高, 反正买了",
+        "赚到了" to "买的时候省钱了, 芜湖",
+        "转账" to "给别人转账",
+        "交通" to "出行",
+        "网购" to "淘宝, 京东, 拼多多",
+        "白花了" to "买的东西没用上",
+    )
+
     private fun init(context: Context) {
         if (init) return
         init = true
@@ -105,22 +117,11 @@ class App : ComponentActivity() {
         ).build()
         firstLaunchInit {
             App.launch(Dispatchers.IO) {
-                db.tag.insert(
-                    Tag(tag = "早饭", desc = "一顿早饭", color = colors[0].toArgb()),
-                    Tag(tag = "午饭", desc = "一顿午饭", color = colors[1].toArgb()),
-                    Tag(tag = "晚饭", desc = "一顿晚饭", color = colors[2].toArgb()),
-                    Tag(tag = "购物", desc = "买了点东西", color = colors[3].toArgb()),
-                    Tag(
-                        tag = "买贵了",
-                        desc = "价格比预期的高, 反正买了",
-                        color = colors[5].toArgb()
-                    ),
-                    Tag(tag = "赚到了", desc = "买的时候省钱了, 芜湖", color = colors[6].toArgb()),
-                    Tag(tag = "转账", desc = "给别人转账", color = colors[7].toArgb()),
-                    Tag(tag = "交通", desc = "出行", color = colors[8].toArgb()),
-                    Tag(tag = "网购", desc = "淘宝, 京东, 拼多多", color = colors[9].toArgb()),
-                    Tag(tag = "白花了", desc = "买的东西没用上", color = colors[10].toArgb()),
-                )
+                val now = System.currentTimeMillis()
+                db.tag.insert(data.mapIndexed { index, data ->
+                    val (tag, desc) = data
+                    Tag(0, tag, desc, now, colors[index].toArgb())
+                })
             }
         }
     }
@@ -130,7 +131,10 @@ class App : ComponentActivity() {
         init(applicationContext)
 
         setContent {
-            MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
+            val colorScheme =
+                if (isSystemInDarkTheme()) darkColorScheme()
+                else lightColorScheme()
+            MaterialTheme(colorScheme = colorScheme) {
                 Application()
             }
         }
@@ -150,7 +154,7 @@ object Router {
 @Composable
 fun Application() {
     val controller = rememberNavController()
-    val snackbarHostState = remember(Update.tag) { SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     val bottomBarHeight = 70.dp
@@ -196,9 +200,7 @@ fun Application() {
                     .padding(bottom = bottomBarHeight),
                 color = MaterialTheme.colorScheme.background
             ) {
-                CompositionLocalProvider(
-                    NavController provides controller
-                ) {
+                CompositionLocalProvider(NavController provides controller) {
                     NavHost(navController = controller, startDestination = Router.Record) {
                         composable(Router.Record) { RecordBrowser() }
                         composable(Router.Statistics) { Statistic() }

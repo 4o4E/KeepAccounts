@@ -25,8 +25,8 @@ import kotlinx.coroutines.delay
 import top.e404.keepaccounts.App
 import top.e404.keepaccounts.data.dao.BalanceRecord
 import top.e404.keepaccounts.ui.component.TagDisplayList
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -73,8 +73,8 @@ fun BalanceRecord(
             TagDisplayList(tagList)
             LaunchedEffect(Unit) {
                 while (true) {
-                    val (display, delay) = formatTime(record.time)
-                    time = display
+                    val (formatted, delay) = formatTime(record.time)
+                    time = formatted
                     delay(delay)
                 }
             }
@@ -89,7 +89,7 @@ internal val displayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("
  *
  * @return 格式化后的时间和下次刷新的时间间隔, 单位ms
  */
-private fun formatTime(time: Long): Pair<String, Long> {
+fun formatTime(time: Long): Pair<String, Long> {
     val now = System.currentTimeMillis()
     val diff = now - time
     return when {
@@ -97,14 +97,9 @@ private fun formatTime(time: Long): Pair<String, Long> {
         diff < 60 * 60 * 1000 -> "${(diff / (60 * 1000))}分钟前" to 60 * 1000
         diff < 24 * 60 * 60 * 1000 -> "${(diff / (60 * 60 * 1000))}小时前" to 60 * 60 * 1000
         diff < 7 * 24 * 60 * 60 * 1000 -> "${(diff / (24 * 60 * 60 * 1000))}天前" to 24 * 60 * 60 * 1000
-        else -> {
-            displayFormatter.format(
-                LocalDateTime.ofEpochSecond(
-                    time,
-                    0,
-                    ZoneOffset.of("+8")
-                )
-            ) to 24 * 60 * 60 * 1000
-        }
+        else -> Instant.ofEpochSecond(time)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+            .let(displayFormatter::format) to 24 * 60 * 60 * 1000
     }
 }

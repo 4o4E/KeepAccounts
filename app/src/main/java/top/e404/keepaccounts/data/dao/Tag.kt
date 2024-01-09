@@ -8,7 +8,6 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 
 /**
@@ -23,9 +22,10 @@ import kotlinx.serialization.Serializable
 @Entity(tableName = Tag.TABLE_NAME)
 data class Tag(
     @PrimaryKey(autoGenerate = true)
-    var id: Int = 0,
+    var id: Int,
     var tag: String,
     var desc: String,
+    var time: Long,
     var color: Int
 ) {
     companion object {
@@ -35,10 +35,7 @@ data class Tag(
 
 @Dao
 interface TagDao {
-    @Query("SELECT * FROM ${Tag.TABLE_NAME}")
-    fun flow(): Flow<List<Tag>>
-
-    @Query("SELECT * FROM ${Tag.TABLE_NAME}")
+    @Query("SELECT * FROM ${Tag.TABLE_NAME} ORDER BY time desc")
     fun list(): List<Tag>
 
     @Insert
